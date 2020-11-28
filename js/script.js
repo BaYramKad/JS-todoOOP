@@ -1,19 +1,17 @@
-/* eslint-disable linebreak-style */
 'use strict';
 class Todo {
-    constructor(form, input, todoList, todoCompleted, btnRemove, btnComplete) {
+    constructor(form, input, todoList, todoCompleted) {
         this.form = document.querySelector(form);
         this.input = document.querySelector(input);
         this.todoList = document.querySelector(todoList);
         this.todoCompleted = document.querySelector(todoCompleted);
         this.todoData = new Map(JSON.parse(localStorage.getItem("todoList")));
-        this.btnRemove = document.querySelector(btnRemove);
-        this.btnComplete = document.querySelector(btnComplete);
     }
 
     addTOStorage() {
         localStorage.setItem("todoList", JSON.stringify([...this.todoData]));
     }
+
     addTodo(event) {
         event.preventDefault();
         if (this.input.value.trim()) {
@@ -24,6 +22,8 @@ class Todo {
             };
             this.todoData.set(newTodo.key, newTodo);
             this.render();
+        } else if (this.input.value === "") {
+            alert("Пустое дело добавить нельзя!");
         }
     }
 
@@ -37,7 +37,6 @@ class Todo {
     createItem(todo) {
         const li = document.createElement("li");
         li.classList.add("todo-item");
-        li.key = todo.key;
         li.insertAdjacentHTML("beforeend", `
           <span class="text-todo">${todo.value}</span>
           <div class="todo-buttons">
@@ -45,13 +44,14 @@ class Todo {
             <button class="todo-complete"></button>
           </div>
         `);
-
+        this.handler(li, todo);
         if (todo.completed) {
             this.todoCompleted.append(li);
         } else {
             this.todoList.append(li);
         }
     }
+
     generateKey() {
         const letters = 'abcdefghijklmnopqrstuvwxyz0123456789';
         let word = '';
@@ -65,12 +65,43 @@ class Todo {
     init() {
         this.form.addEventListener("submit", this.addTodo.bind(this));
         this.render();
-        this.btnComplete.addEventListener("click", () => {
-            console.log("Hello");
+    }
+
+    handler(li, todo) {
+        li.key = todo.key;
+        li.addEventListener("click", event => {
+            const target = event.target;
+            if (target.matches(".todo-remove")) {
+                this.deleteItem(target, li);
+            }
+            if (target.matches(".todo-complete")) {
+                this.completedItem(target, li);
+            }
         });
+    }
+
+    deleteItem(target, li) {
+        this.todoData.forEach((item, i) => {
+            if (i === li.key && target) {
+                return this.todoData.delete(i);
+            }
+            this.todoData.set(i, item);
+        });
+        this.render();
+    }
+
+    completedItem(target, li) {
+        this.todoData.forEach((item, i) => {
+            if (item.completed) {
+                item.completed = !(i === li.key && target);
+            } else {
+                item.completed = item.completed || i === li.key && target;
+            }
+            this.todoData.set(i, item);
+        });
+        this.render();
     }
 }
 
-// eslint-disable-next-line max-len
-const todo = new Todo(".todo-control", ".header-input", ".todo-list", ".todo-completed", ".todo-remove", ".todo-complete");
+const todo = new Todo(".todo-control", ".header-input", ".todo-list", ".todo-completed");
 todo.init();
