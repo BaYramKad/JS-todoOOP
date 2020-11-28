@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 class Todo {
     constructor(form, input, todoList, todoCompleted) {
         this.form = document.querySelector(form);
@@ -28,6 +28,7 @@ class Todo {
     }
 
     render() {
+        this.input.value = "";
         this.todoList.textContent = "";
         this.todoCompleted.textContent = "";
         this.todoData.forEach(this.createItem, this);
